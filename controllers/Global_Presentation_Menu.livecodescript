@@ -27,7 +27,7 @@ getprop menu_Target [tObject]
 end menu_Target
 
 getprop checked_AnimationEngine
-   put animation_EngineIsOn() into isOn
+   put ae_IsActive() into isOn
    return isOn
 end checked_AnimationEngine
 
@@ -42,28 +42,11 @@ end openPresentation_Params
 
 --> Global | Presentation | Menu
 -
-on menu_SavePresentation
-   put "Browser,View|Camera,View|Lexon|Contract" into stackNames
-   --
-   repeat for each item stackName in stackNames
-      if exists (stack stackName) is false then next repeat
-      --
-      put the rect of stack stackName into displayData [stackName]["stackRect"]
-      --
-      put the stack_Frame of stack stackName into displayData [stackName]["stack_Frame"]
-      get the displayed_Data of stack stackName
-      if it is an array then put it into displayData [stackName]["displayed_Data"]
-   end repeat
-   
-   put "lcw_Presentation" into modelName
-   set the model_Array ["lexon.array"] of stack modelName to displayData
-   put the result into filePath
-   finder_Reveal filePath
-   put filePath
-   --
-end menu_SavePresentation
+on menu_DisplayNounCollections
+   display_NounCollections
+end menu_DisplayNounCollections
 
-on _
+private on _
 end _
 
 on menu_OpenPresentation displayView, shortFile
@@ -97,34 +80,59 @@ on menu_DisplayPresentationData displayView, shortFile
    display_Data pData, shortFile, "Presentation Data"
 end menu_DisplayPresentationData
 
-on _
-end _
+on menu_SavePresentation
+   put "Browser,View|Camera,View|Lexon|Contract" into stackNames
+   --
+   repeat for each item stackName in stackNames
+      if exists (stack stackName) is false then next repeat
+      --
+      put the rect of stack stackName into displayData [stackName]["stackRect"]
+      --
+      put the stack_Frame of stack stackName into displayData [stackName]["stack_Frame"]
+      get the displayed_Data of stack stackName
+      if it is an array then put it into displayData [stackName]["displayed_Data"]
+   end repeat
+   
+   put "lcw_Presentation" into modelName
+   set the model_Array ["lexon.array"] of stack modelName to displayData
+   put the result into filePath
+   finder_Reveal filePath
+   put filePath
+   --
+end menu_SavePresentation
+
+private on __
+end __
 
 on menu_AnimationEngine
-   put menu_GetChecked (the params) into isChecked
-   animation_EngineStart someBoolean
+   put ae_IsActive() into sBoolean
+   ae_Start (sBoolean is false)
    put the result into homePath
    go to stack homePath
 end menu_AnimationEngine
 
-on _
-end _
+-- on menu_AnimationEngine
+   put menu_GetChecked (the params) into isChecked
+   put env_ConstructHomePath ("AnimationEngine") into homePath
+   if isChecked is true then
+      stop using stack homePath
+   else
+      start using stack homePath
+   end if
+   go to stack homePath
+end menu_AnimationEngine
 
-on submenu_Dev
-   return "Dev | Menu"
-end submenu_Dev
+on ___
+end ___
 
-
---> Dev | Menu
--
 on menu_DisplayModelData
    put the model_Data of me into modelData
    -- put the model_Data ["lcw_Presentation"] of me into modelData
    display_Data modelData, "Model Data", "lcw_Presentation"
 end menu_DisplayModelData
 
-on _
-end _
+on ____
+end ____
 
 on menu_CreateNewTransport
    put pageArray_Fetch ("transport.fedwiki.org", "micro-app-maker") into pageArray
@@ -140,8 +148,8 @@ on menu_FindOriginalPhoto
    display_TestPhoto
 end menu_FindOriginalPhoto
 
-on _
-end _
+on ______
+end ______
 
 on menu_ListCountries
    display_IntentionalCountries

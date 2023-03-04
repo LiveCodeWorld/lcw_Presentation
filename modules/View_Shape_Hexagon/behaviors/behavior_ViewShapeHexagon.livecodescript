@@ -18,6 +18,10 @@ getprop view_Object
    return the long id of me
 end view_Object
 
+getprop graphic_Object
+   return the long id of grc 1 of me
+end graphic_Object
+
 
 --> Class
 -
@@ -117,7 +121,8 @@ command LayoutControl pRect, pRotation
    lock screen
    set the rect of graphicObject to hexagonRect
    if exists (innerView) then
-      put round (the inner_Margin [pRect] of me) into innerMargin
+      put the inner_Margin [pRect] of me into innerMargin
+      -- put round (the inner_Margin [pRect] of me) into innerMargin
       put rect_SubtractMargin (innerMargin, hexagonRect) into innerViewRect
       subtract 1 from item 1 of innerViewRect -- hack
       subtract 1 from item 3 of innerViewRect -- hack
@@ -177,10 +182,6 @@ end init_Stuff
 
 --> Objects
 -
-getprop graphic_Object
-   return the long id of grc 1 of me
-end graphic_Object
-
 getprop inner_View  
    put the inner_View of me into innerView
    if exists (innerView) is false then
@@ -249,8 +250,10 @@ function hexagon_PointsFromRect hexagonRect
    
    put hRight - hLeft into hWidth
    put hBottom - hTop into hHeight
-   put round (hWidth / 4) into quaterWidth
-   put hTop + round (hHeight / 2) into hMid
+   put hWidth / 4 into quaterWidth
+   -- put round (hWidth / 4) into quaterWidth
+   -- put hTop + round (hHeight / 2) into hMid
+   put hTop + hHeight / 2 into hMid
    
    put hRight -  quaterWidth into item 1 of someLoc
    put hTop into item 2 of someLoc
@@ -311,8 +314,11 @@ function hexagon_GetPoint pNum, someDiameter, pCentreLoc, pRotation
    put someDiameter * sin (someRad) into someX
    put someDiameter * cos (someRad) into someY
    
-   add round(someX) to item 1 of pCentreLoc
-   add round(someY) to item 2 of pCentreLoc
+   --add round(someX) to item 1 of pCentreLoc
+   --add round(someY) to item 2 of pCentreLoc
+   add someX to item 1 of pCentreLoc
+   add someY to item 2 of pCentreLoc
+   --
    return pCentreLoc
 end hexagon_GetPoint
 
@@ -350,7 +356,7 @@ getprop hexagon_PointWidth
    put item 2 of someLoc into minY
    
    repeat for each line someLoc in somePoints
-      put item @ of someLoc into someX
+      put item 1 of someLoc into someX
       if someX is empty then next repeat
       
       if someX > maxX then put someX into maxX
@@ -469,10 +475,13 @@ getprop hexagon_NeighbourLoc [gNum]
    
    put item 3 of mRect - item 1 of mRect into mWidth
    put item 4 of mRect - item 2 of mRect into mHeight
-   put round(mWidth/2) into mSide
+   -- put round(mWidth/2) into mSide
+   put mWidth/2 into mSide
    
-   put round (1.5 * mSide) into someX
-   put round (mHeight/2) into someY
+   -- put round (1.5 * mSide) into someX
+   -- put round (mHeight/2) into someY
+   put 1.5 * mSide into someX
+   put mHeight/2 into someY
    
    put mLoc into newLoc
    switch gNum
@@ -506,13 +515,15 @@ end hexagon_NeighbourLoc
 function hexagon_GetHeight someWidth
    put angle_DegreesToRadians (30) into someRad
    put someWidth * cos (someRad) into someHeight
-   return round (someHeight)
+   -- return round (someHeight)
+   return someHeight
 end hexagon_GetHeight
 
 function hexagon_GetWidth someHeight
    put angle_DegreesToRadians (30) into someRad
    put someHeight / cos (someRad) into someWidth
-   return round (someWidth)
+   -- return round (someWidth)
+   return someWidth
 end hexagon_GetWidth
 
 getprop hexagon_Side

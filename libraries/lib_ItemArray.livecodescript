@@ -40,40 +40,40 @@ command display_StoryArrayFragments storyArray, pageTitle
 end display_StoryArrayFragments
 
 function pageArray_FindFirstMedia pageArray
-put pageArray ["story"] into storyArray
-repeat with itemNum = 1 to item 2 of the extents of storyArray
-   put storyArray [itemNum] into itemArray
-   put itemArray ["type"] into itemType
-   put storyArray [itemNum]["text"] into itemText
-   --
-   put itemType into resultArray ["mediaType"]
-   switch
-      case itemType = "video"
-         get line 1 of itemText
-         put word 1 of it into videoType
-         put videoType into itemArray ["videoType"]
-         
-         switch videoType
-            case "HTML5"
-               put word 2 of it into itemArray ["mime"]
-               put word 3 of it into itemArray ["videoURL"]
-               return itemArray
-            case "VIMEO"
-            case "YOUTUBE"
-            default
-               return itemArray
-         end switch
-      case itemType = "image"
-         return itemArray
-      case itemArray ["type"] = "html"
-         -- should check
-         -- "text": "<div style='padding: 12px; background:#eee; width:96%; align=centered;'>\n<a href='https://www.mandalaforchange.com/site/wp-content/uploads/DSC_0151_zps9cc637bc-1.jpg' target='_blank'><img style='display:block; margin:auto; width:100%;' src='https://www.mandalaforchange.com/site/wp-content/uploads/DSC_0151_zps9cc637bc-1.jpg'>\n</a>\n<p class=caption>\nOrganizing Transformation with [[Legislative Theatre]] - [https://www.mandalaforchange.com/site/blog/organizing-transformation-with-legislative-theatre/ mandalaforchange.com]\n</p></div>",
-         
-         put itemText into resultArray ["html"]
-         return resultArray
-   end switch
-end repeat
-return empty
+   put pageArray ["story"] into storyArray
+   repeat with itemNum = 1 to item 2 of the extents of storyArray
+      put storyArray [itemNum] into itemArray
+      put itemArray ["type"] into itemType
+      put storyArray [itemNum]["text"] into itemText
+      --
+      put itemType into resultArray ["mediaType"]
+      switch
+         case itemType = "video"
+            get line 1 of itemText
+            put word 1 of it into videoType
+            put videoType into itemArray ["videoType"]
+            
+            switch videoType
+               case "HTML5"
+                  put word 2 of it into itemArray ["mime"]
+                  put word 3 of it into itemArray ["videoURL"]
+                  return itemArray
+               case "VIMEO"
+               case "YOUTUBE"
+               default
+                  return itemArray
+            end switch
+         case itemType = "image"
+            return itemArray
+         case itemArray ["type"] = "html"
+            -- should check
+            -- "text": "<div style='padding: 12px; background:#eee; width:96%; align=centered;'>\n<a href='https://www.mandalaforchange.com/site/wp-content/uploads/DSC_0151_zps9cc637bc-1.jpg' target='_blank'><img style='display:block; margin:auto; width:100%;' src='https://www.mandalaforchange.com/site/wp-content/uploads/DSC_0151_zps9cc637bc-1.jpg'>\n</a>\n<p class=caption>\nOrganizing Transformation with [[Legislative Theatre]] - [https://www.mandalaforchange.com/site/blog/organizing-transformation-with-legislative-theatre/ mandalaforchange.com]\n</p></div>",
+            
+            put itemText into resultArray ["html"]
+            return resultArray
+      end switch
+   end repeat
+   return empty
 end pageArray_FindFirstMedia
 
 command display_InvisibleText @cloneStackName, itemText, dTitle, sLabel, pTitleColour

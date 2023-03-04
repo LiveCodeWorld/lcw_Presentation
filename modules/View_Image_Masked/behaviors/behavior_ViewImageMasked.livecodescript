@@ -36,19 +36,10 @@ command LayoutControl pRect
    put the image_Group of me into imageGroup
    
    put the margins of imageGroup into imageGroupMargins
-   
-   -- put the margins of me into myMargins
-   -- put margins_Add (myMargins, imageGroupMargins) into innerMargins
-   -- put pRect into innerRect
-   -- rect_SubtractMargins innerRect, innerMargins
-   
    put the inner_Rect [pRect] of me into innerRect
    rect_SubtractMargins innerRect, 2 -- hack, not sure why?
    
    put rect_GetCentre (innerRect) into innerLoc
-   -- add 0 to item 1 of innerLoc -- hack, not sure why?
-   -- add 0 to item 2 of innerLoc -- hack, not sure why?
-   
    put the rect of graphicObject into gRect
    put the rect of imageGroup into iRect
    
@@ -222,6 +213,7 @@ end resize_Graphic
 
 setprop resize_Graphic someBoolean
    set the resize_Graphic of me to someBoolean
+   LayoutControl
 end resize_Graphic
 
 getprop constrain_Graphic
@@ -229,12 +221,37 @@ getprop constrain_Graphic
 end constrain_Graphic
 
 setprop constrain_Graphic someBoolean
-   set the resize_Graphic of me to someBoolean
+   set the constrain_Graphic of me to someBoolean
+   LayoutControl
 end constrain_Graphic
 
 
---> Show
+--> Label
 -
+getprop graphic_Name
+   put the graphic_Object of me into graphicObject
+   put the short name of graphicObject into sName
+   return sName
+end graphic_Name
+
+setprop graphic_Name sName
+   put the graphic_Object of me into graphicObject
+   set the name of graphicObject to sName
+   return graphicObject
+end graphic_Name
+
+getprop graphic_Label
+   put the graphic_Object of me into graphicObject
+   put the label of graphicObject into sLabel
+   return sLabel
+end graphic_Label
+
+setprop graphic_Label sLabel
+   put the graphic_Object of me into graphicObject
+   set the label of graphicObject to sLabel
+   return graphicObject
+end graphic_Label
+
 getprop show_Label
    put the graphic_Object of me into graphicObject
    put the showname of graphicObject into someBoolean
@@ -257,6 +274,9 @@ private command hideLabelIfTooSmall graphicRect
    end if
 end hideLabelIfTooSmall
 
+
+--> Show
+-
 getprop show_ImageBorder
    return the showborder of me
    put the image_Group of me into imageGroup
@@ -283,6 +303,8 @@ getprop show_Rounded
 end show_Rounded
 
 setprop show_Rounded someBoolean
+   put someBoolean is true into someBoolean
+   --
    put the graphic_Object of me into graphicObject
    put the image_Object of me into imageObject
    
@@ -335,8 +357,41 @@ setprop show_Image someBoolean
 end show_Image
 
 
---> Display
+--> Image
 -
+getprop image_Contents
+   put the image_Object of me into imageObject
+   put the text of imageObject into pngVar
+   return pngVar
+end image_Contents
+
+setprop image_Contents pngVar
+   put the image_Object of me into imageObject
+   set the text of imageObject to pngVar
+   return imageObject
+end image_Contents
+
+getprop image_SourceFile
+   return the image_SourceFile of me
+end image_SourceFile
+
+setprop image_SourceFile imageFile
+   set the image_SourceFile of me to imageFile
+end image_SourceFile
+
+getprop image_File
+   put the image_Object of me into imageObject
+   put the filename of imageObject into imageFile
+   return imageFile
+end image_File
+
+setprop image_File imageFile
+   set the image_SourceFile of me to imageFile
+   put the image_Object of me into imageObject
+   set the filename of imageObject to imageFile
+   return imageObject
+end image_File
+
 getprop burnt_Image
    -- put the burnt_Image of me is true into someBoolean
    put the image_File of me is empty into isBurnt
@@ -473,27 +528,6 @@ getprop image_ResizeQualities
    return "normal,good,best"
 end image_ResizeQualities
 
-getprop image_SourceFile
-   return the image_SourceFile of me
-end image_SourceFile
-
-setprop image_SourceFile imageFile
-   set the image_SourceFile of me to imageFile
-end image_SourceFile
-
-getprop image_File
-   put the image_Object of me into imageObject
-   put the filename of imageObject into imageFile
-   return imageFile
-end image_File
-
-setprop image_File imageFile
-   set the image_SourceFile of me to imageFile
-   put the image_Object of me into imageObject
-   set the filename of imageObject to imageFile
-   return imageObject
-end image_File
-
 
 --> Graphic
 -
@@ -548,6 +582,3 @@ end image_Object
 getprop graphic_Object
     return the long id of grc 1 of me
 end graphic_Object
-
-
-

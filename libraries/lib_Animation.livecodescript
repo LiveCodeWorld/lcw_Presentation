@@ -1,37 +1,48 @@
 ﻿script "lib_Animation"
 --> MetaData
 -
-copyright: Anonymous
+copyright: David Bovill
 license: GPLv3
 name: lib_Animation
 type: library
 version: 0.1
 
-/*Some help*/
+/*
+Some utility scripts to set up and interact with AnimationEngine
+*/
 
 
 --> Working on
 -
+-- on libraryStack
+if ae_IsActive() is true then pass libraryStack
+--
+ae_Start true
+put the result into homePath
+go to stack homePath
+end libraryStack
+
+function ae_IsActive
+   -- was "animation_EngineIsOn"
+   put "animationEngine" is among the lines of the stacksinuse into sBloolean
+   return sBloolean
+end ae_IsActive
+
 
 
 --> Animation
 -
-function animation_EngineIsOn
-   put "animationEngine" is among the lines of the stacksinuse into isON
-   return isOn
-end animation_EngineIsOn
-
-command animation_EngineStart someBoolean
+command ae_Start someBoolean
    put env_ConstructHomePath ("animationEngine") into homePath
    if exists (stack homePath) is false then return empty
    --
    if someBoolean is true then
-      stop using stack homePath
-   else
       start using stack homePath
+   else
+      stop using stack homePath
    end if
    return homePath
-end animation_EngineStart
+end ae_Start
 
 
 --> Deps

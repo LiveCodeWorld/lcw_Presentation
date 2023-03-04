@@ -7,8 +7,41 @@ type: behavior
 version: 0.1
 
 
+--> Events
+-
+on mouseDown pButton
+   if pButton = 3 then
+      -- menu_PopUp "Global | Governance | Person | Menu"
+      menu_PopUp "Global | Button | SVG | Menu"
+   else
+      if word 1 of the target = "image" then
+         if the burnt_Image of me is true then
+            grab me
+         else
+            grab the target
+         end if
+      end if
+   end if
+end mouseDown
+
+on resizecontrol
+   LayoutControl
+end resizecontrol
+
+
 --> Props
 -
+getprop icon_PathText
+   put the iconPath of _svgWidget() into iconPathText
+   return iconPathText
+end icon_PathText
+
+setprop icon_PathText iconPathText
+   put _svgWidget() into svgWidget
+   set the iconPath of svgWidget to iconPathText
+   return svgWidget
+end icon_PathText
+
 getprop icon_Width
    return the width of me
 end icon_Width
@@ -52,35 +85,14 @@ setprop icon_Name iName
 end icon_Name
 
 
---> Events
--
-on mouseDown pButton
-   if pButton = 3 then
-      menu_PopUp "Global | Governance | Person | Menu"
-   else
-      if word 1 of the target = "image" then
-         if the burnt_Image of me is true then
-            grab me
-         else
-            grab the target
-         end if
-      end if
-   end if
-end mouseDown
-
-on resizecontrol
-   LayoutControl
-end resizecontrol
-
-
 --> Geometry
 -
 command LayoutControl pRect
    if pRect is empty then put the rect of me into pRect
    lock screen
-   put _SvgWidget() into _svgWidget
+   put _SvgWidget() into svgWidget
    put the inner_Rect [pRect] of me into innerRect
-   set the rect of _svgWidget to innerRect
+   set the rect of svgWidget to innerRect
    unlock screen
 end LayoutControl
 

@@ -10,7 +10,7 @@ version: 0.1
 --> Props
 -
 getprop project_Deps
-   return "lcw,lcw_Tools,lcw_Authoring,lcw_GIT"
+   return "lcw,lcw_Tools,lcw_Authoring,lcw_GIT,lcw_Media"
 end project_Deps
 
 
@@ -24,6 +24,12 @@ on preOpenStack
       env_RecursivelyLoadProjects
    end if
 end preOpenStack
+
+command project_CustomInit
+   ae_Start true
+   put the result into homePath
+   go to stack homePath
+end project_CustomInit
 
 
 --> Deps

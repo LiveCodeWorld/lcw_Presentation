@@ -47,21 +47,17 @@ getprop checked_ShowImageBorder [mTarget]
    return someBoolean
 end checked_ShowImageBorder
 
--- getprop burn_Image [mTarget]
-return the burnt_Image of mTarget
-end burn_Image
-
-getprop resize_Graphic [mTarget]
-   if the long id of the target is not the long id of me then pass resize_Graphic
+getprop checked_ResizeGraphic [mTarget]
+   if the long id of the target is not the long id of me then pass checked_ResizeGraphic
    put the resize_Graphic of mTarget into someBoolean
    return someBoolean
-end resize_Graphic
+end checked_ResizeGraphic
 
-getprop constrain_Graphic [mTarget]
-   if the long id of the target is not the long id of me then pass constrain_Graphic
+getprop checked_ConstrainGraphic [mTarget]
+   if the long id of the target is not the long id of me then pass checked_ConstrainGraphic
    put the constrain_Graphic of mTarget into someBoolean
    return someBoolean
-end constrain_Graphic
+end checked_ConstrainGraphic
 
 getprop disabled_ResizeQuality [mTarget]
    if the burnt_Image of mTarget is true then return true
@@ -92,15 +88,15 @@ getprop disabled_RestoreImageFile [mTarget]
    end if
 end disabled_RestoreImageFile
 
-getprop personType_Prop [mTarget]
+getprop personType_Param [mTarget]
    put the person_Type of mTarget into someType
    return someType
-end personType_Prop
+end personType_Param
 
-getprop personType_Props [mTarget]
+getprop personType_Params [mTarget]
    put the person_Types of mTarget into someTypes
    return someTypes
-end personType_Props
+end personType_Params
 
 
 --> Global | Image | Masked | Menu
@@ -109,16 +105,16 @@ on menu_PersonType mTarget, someType
    set the person_Type of mTarget to someType
 end menu_PersonType
 
-on _
-end _
+on menu_SetLabel mTarget
+   put the graphic_Label of mTarget into sLabel
+   put lcw_Ask ("Seet the label...", sLabel, "Label", mTarget) into sLabel
+   --
+   set the graphic_Label of mTarget to sLabel
+end menu_SetLabel
 
 on menu_BurnImage mTarget
    set the burnt_Image of mTarget to true
 end menu_BurnImage
-
--- on menu_BurnImageTo mTarget, someSize
-   set the burnt_Image [someSize] of mTarget to true
-end menu_BurnImageTo
 
 on menu_SizeImage mTarget, someSize
    set the burnt_ImageWidth of mTarget to someSize
@@ -129,44 +125,32 @@ on menu_RestoreImageFile mTarget
    set the burnt_Image of mTarget to false
 end menu_RestoreImageFile
 
-on menu_ChooseImage mTarget
-   answer file "Select an image..."
-   if it is empty then exit to top
-   
-   set the image_File of mTarget to it
-   set the image_ResizeQuality of mTarget to "best"
-end menu_ChooseImage
-
 on _
 end _
 
-on menu_ShowImage mTarget, someBoolean
+on menu_ShowImage mTarget
+   put the show_Image of mTarget is false into someBoolean
    set the show_Image of mTarget to someBoolean
 end menu_ShowImage
 
-on menu_ShowImageBorder mTarget, someBoolean
+on menu_ShowImageBorder mTarget
+   put the show_ImageBorder of mTarget is false into someBoolean
    set the show_ImageBorder of mTarget to someBoolean
 end menu_ShowImageBorder
 
-on menu_ResizeGraphic mTarget, someBoolean
+on menu_ResizeGraphic mTarget
+   put the resize_Graphic of mTarget is false into someBoolean
    set the resize_Graphic of mTarget to someBoolean
 end menu_ResizeGraphic
+
+on menu_ConstrainGraphic mTarget
+   put the constrain_Graphic of mTarget is false into someBoolean
+   set the constrain_Graphic of mTarget to someBoolean
+end menu_ConstrainGraphic
 
 on menu_ResizeQuality mTarget, someQuality
    set the image_ResizeQuality of mTarget to someQuality
 end menu_ResizeQuality
-
-on menu_ConstrainGraphic mTarget, someBoolean
-   set the constrain_Graphic of mTarget to someBoolean
-end menu_ConstrainGraphic
-
-on _
-end _
-
-on submenu_Image
-   return "Global | Image | Menu"
-end submenu_Image
-
 
 on _
 end _
@@ -178,6 +162,11 @@ end submenu_Dev
 
 --> Dev | Menu
 -
-on menu_ShowRounded mTarget, someBoolean
+on submenu_Image
+   return "Global | Image | Menu"
+end submenu_Image
+
+on menu_ShowRounded mTarget
+   put the show_Rounded of mTarget is false into someBoolean
    set the show_Rounded of mTarget to someBoolean
 end menu_ShowRounded

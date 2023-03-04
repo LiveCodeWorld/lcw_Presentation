@@ -52,6 +52,11 @@ on resizecontrol
    -- LayoutControl
 end resizecontrol
 
+on preOpenControl
+   set the initial_Rotation of me to 0
+   LayoutControl
+end preOpenControl
+
 
 --> Tests
 -
@@ -82,29 +87,50 @@ end initial_Rotation
 getprop ring_Radius [pNodeWidth]
    if pNodeWidth is empty then put the node_Width of me into pNodeWidth
    put the inner_Rect of me into innerRect
-   
-   -- rect_CreateMask innerRect, "innerRect"
-   
+   put _GetRingRadius (innerRect, pNodeWidth) into ringRadius
+   return ringRadius
+end ring_Radius
+
+private function _GetRingRadius innerRect, pNodeWidth
    put item 3 of innerRect - item 1 of innerRect into innerWidth
    put item 4 of innerRect - item 2 of innerRect into innerHeight
    put min (innerWidth, innerHeight) into smallDiameter
    put (smallDiameter - pNodeWidth) / 2 into ringRadius
    
-   -- subtract 2 from ringRadius -- hack
-   -- add round (pNodeWidth/4) to ringRadius -- hack
-   subtract round (pNodeWidth/4) from ringRadius -- hack
+   # Hack
+   -- subtract 2 from ringRadius
+   -- add round (pNodeWidth/4) to ringRadius
+   subtract pNodeWidth/4 from ringRadius
    
    return ringRadius
-end ring_Radius
+end _GetRingRadius
+
+getprop node_Width
+   put the ring_Nodes of me into ringNodes
+   put line 1 of ringNodes into ringNode
+   if exists(ringNode) is false then return 0
+   
+   put the width of ringNode into nodeWidth
+   put max (nodeWidth, 4) into nodeWidth
+   return nodeWidth
+end node_Width
+
+setprop node_Width nodeWidth
+   init_Stuff nodeWidth
+   put the rect of me into pRect
+   LayoutControl pRect, nodeWidth
+   return empty
+end node_Width
 
 command LayoutControl pRect, pNodeWidth
    if pRect is empty then put the rect of me into pRect
+   put pRect into innerRect
    
    lock screen
    put the ring_Graphic of me into ringGraphic
    
-   put the ring_Radius [pNodeWidth] of me into someRadius
-   -- test_RingRadius someRadius, pRect
+   put _GetRingRadius (innerRect, pNodeWidth) into someRadius
+   -- test_RingRadius someRadius, innerRect
    
    put the ring_FormattedBorder of me into ringBorderWidth
    set the linesize of ringGraphic to ringBorderWidth
@@ -116,7 +142,7 @@ command LayoutControl pRect, pNodeWidth
       return empty
    end if
    
-   put rect_GetCentre (pRect) into centreLoc
+   put rect_GetCentre (innerRect) into centreLoc
    put ring_GetPoints (numberOfPoints, someRadius, centreLoc, initialRotation) into somePoints
    --
    set the points of ringGraphic to somePoints
@@ -131,6 +157,8 @@ command LayoutControl pRect, pNodeWidth
       -- set the loc of nodeView to someLoc
       set the image_Margins of nodeView to 0
    end repeat
+   
+   set the rect of me to innerRect
    return ringNodes
 end LayoutControl
 
@@ -170,22 +198,6 @@ command init_Stuff pNodeWidth
    return the node_FactorWidth of me
 end init_Stuff
 
-getprop node_Width
-   put the ring_Nodes of me into ringNodes
-   put line 1 of ringNodes into ringNode
-   if exists(ringNode) is false then return 0
-   
-   put the width of ringNode into nodeWidth
-   return nodeWidth
-end node_Width
-
-setprop node_Width nodeWidth
-   init_Stuff nodeWidth
-   put the rect of me into pRect
-   LayoutControl pRect, nodeWidth
-   return empty
-end node_Width
-
 
 --> Node | Scale
 -
@@ -207,6 +219,48 @@ setprop node_Factor nodeFactor
    LayoutControl
    unlock screen
 end node_Factor
+
+
+--> People
+-
+getprop people_Visible
+   put the ring_Nodes of me into ringNodes
+   put line 1 of ringNodes into firstNode
+   put the visible of firstNode into someBoolean
+   return someBoolean
+end people_Visible
+
+setprop people_Visible someBoolean
+   put the ring_Nodes of me into ringNodes
+   lock screen
+   repeat for each line ringNode in ringNodes
+      set the visible of ringNode to someBoolean
+   end repeat
+   unlock screen
+   return ringNodes
+end people_Visible
+
+getprop number_People
+   put LocalArray ["number_People"] is true into someBoolean
+   return someBoolean
+end number_People
+
+setprop number_People someBoolean
+   put the ring_Nodes of me into ringNodes
+   lock screen
+   put 0 into nodeNum
+   repeat for each line ringNode in ringNodes
+      add 1 to nodeNum
+      if someBoolean is true then
+         set the graphic_Label of ringNode to nodeNum
+      else
+         set the graphic_Label of ringNode to empty
+      end if
+   end repeat
+   unlock screen
+   put someBoolean into LocalArray ["number_People"]
+   return ringNodes
+end number_People
 
 
 --> Ring
