@@ -9,6 +9,36 @@ version: 0.1
 
 --> Events
 -
+--> Drag
+-
+on dragDrop
+   put the long id of me into displayView
+   --
+   put the dragdata ["text"] into dData ["text"]
+   put the dragdata ["files"] into dData ["files"]
+   put the dragdata ["html"] into dData ["html"]
+   put the dragdata ["image"] into dData ["image"]
+   --
+   -- display_Data dData, "More Dropped Data"
+   put dData ["html"] into html
+   if html is not empty then
+      put dData ["text"] into someURL
+      put "https://thenounproject.com/icon/(.*)/" into regEx
+      if matchText (someURL, regEx, nameID) is true then
+         -- diversity-6183633
+         set the itemdelimiter to "-"
+         put item -1 of nameID into iconID
+         put item 1 of nameID into iconName
+         --
+         display_NounIcon iconID, displayView
+      end if
+   end if
+end dragDrop
+
+on dragEnter
+   set the dragAction to "link"
+end dragEnter
+
 on mouseDown pButton
    if pButton = 3 then
       -- menu_PopUp "Global | Governance | Person | Menu"

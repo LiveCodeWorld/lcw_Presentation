@@ -21,53 +21,136 @@ puts response.body
 
 --> Working on
 -
-function noun_ConstructedSig restURL, consumerKey, timeStamp, authNonce
-   put noun_GetApiSecret() into consumerSecret
-   put oAuth_ConstructSignature ("GET", restURL, consumerKey, consumerSecret, "", timeStamp, authNonce) into constructedSig
-   return constructedSig
-end noun_ConstructedSig
+function noun_FetchIconPath iconID
+   put noun_FetchIconSvg (iconID) into svgXML
+   if svgXML is empty then
+      return empty
+   else
+      put svg_GetPathText (svgXML) into svgPathText
+      return svgPathText
+   end if
+end noun_FetchIconPath
+
+function noun_FetchIconSvg iconID
+   put noun_FetchIconData (iconID) into iconData
+   put iconData ["icon_url"] into iconURL
+   if iconURL is empty then return empty
+   --
+   put url iconURL into svgXML
+   return svgXML
+end noun_FetchIconSvg
+
+function noun_FetchCollectionsDataPage pageNum
+   --v1 only
+   put "https://api.thenounproject.com/collections" into restEndPoint
+   --
+   put restEndPoint & "?limit=50&page=" & pageNum into restURL
+   --
+   put noun_FetchData (restURL) into resultArray
+   put resultArray ["Collections"] into collectionArray
+   return collectionArray
+end noun_FetchCollectionsDataPage
+
+function test_Noun sQuery, pIsPublic
+   put noun_FindIcon (sQuery, pIsPublic) into iconData
+   put iconData ["icons"] into iconArray
+   return iconData ["total"]
+end test_Noun
+
+
+--> Non | Rest
+-
+function noun_FetchData restURL
+   put _AddUrlParams (restURL) into restURL
+   put jsonrpc_GetArray (restURL) into resultArray
+   return resultArray
+end noun_FetchData
+
+function _ConstructRestUrl restBit
+   constant NounRestUrl = "https://api.thenounproject.com/v2/"
+   --
+   put NounRestUrl & restBit into restURL
+   return restURL
+end _ConstructRestUrl
 
 
 --> Noun | Auth
 -
 function noun_ApiUsage
-   put "https://api.thenounproject.com/oauth/usage" into restURL
+   -- was "https://api.thenounproject.com/oauth/usage"
+   put _ConstructRestUrl ("client/usage") into restURL
    --
    put noun_FetchData (restURL) into resultArray
    put resultArray ["icon"] into iconData
    return iconData
-   
 end noun_ApiUsage
 
-function noun_FetchIconData iconID
-   put "https://api.thenounproject.com/icon/" & iconID into restURL
-   -- put "?include_png_1200=1" after restURL
+function noun_FindIcon sQuery, pIsPublic
+   put "icon/" into restBit
+   put _ConstructRestUrl (restBit) into restURL
+   --
+   put "?query=" & urlencode (sQuery) after restURL
+   put "&include_svg=1" after restURL
+   --
+   if the paramCount > 1 then
+      if pIsPublic is true then
+         put "&" after restURL
+         put "limit_to_public_domain=1" after restURL
+      else if pIsPublic is false then
+         put "&" after restURL
+         put "limit_to_public_domain=0" after restURL
+      end if
+   end if
+   --
+   put noun_FetchData (restURL) into iconData
+   return iconData
+end noun_FindIcon
+
+function noun_DownloadIcon iconID, pHexColor, pFiletype, pSize
+   if pFiletype is empty then put "svg" into pFiletype
+   if pHexColor is empty then
+      -- put colour_NameToRgb ("black") into sRGB
+      -- put colour_RgbToHex("0,0,0") into pHexColor
+      put "000000" into pHexColor
+   end if
+   --
+   put "icon/" & iconID & "/download" into restBit
+   put _ConstructRestUrl (restBit) into restURL
+   put "?" after restURL
+   put "color=" & pHexColor after restURL
+   put "&" after restURL
+   put "filetype=" & pFiletype after restURL
+   --
+   if the paramCount > 1 then
+      if pFiletype = "png" AND pSize > 20 AND pSize < 1200 then
+         --- Size of png (minimum of 20, maximum of 1200)
+         put "&" after restURL
+         put "size=" & pSize after restURL
+      end if
+   end if
+   --
+   put noun_FetchData (restURL) into resultArray
+   put resultArray ["icon"] into iconData
+   return iconData
+end noun_DownloadIcon
+
+function noun_FetchIconData iconID, pThumbnailSize
+   put "icon/" & iconID into restBit
+   put _ConstructRestUrl (restBit) into restURL
+   --
+   if the paramCount > 1 then
+      put "?" after restURL
+      if pThumbnailSize is among the items of "42,84,200" then
+         put "thumbnail_size=" & pThumbnailSize after restURL
+         put "&" after restURL
+      end if
+      delete char -1 of restURL
+   end if
    --
    put noun_FetchData (restURL) into resultArray
    put resultArray ["icon"] into iconData
    return iconData
 end noun_FetchIconData
-
-function noun_FetchData restURL
-   put noun_ConstructURL (restURL) into restURL
-   put url restURL into someJSON
-   put json_ToArray (someJSON) into resultArray
-   return resultArray
-end noun_FetchData
-
-function noun_ConstructURL restURL, pTimeStamp, pAuthNonce
-   put noun_GetConsumerKey() into consumerKey
-   put noun_GetApiSecret() into consumerSecret
-   --
-   put oAuth_ConstructRequestArray ("GET", restURL, consumerKey, consumerSecret, "", pTimeStamp, pAuthNonce) into requestArray
-   --
-   put requestArray ["oauth_timestamp"] into timeStamp
-   put requestArray ["oauth_nonce"] into authNonce
-   put noun_ConstructedSig (restURL, consumerKey, timeStamp, authNonce) into constructedSig
-   --
-   put oAuth_ConstructRequestURL (restURL, requestArray, constructedSig) into requestURL
-   return requestURL
-end noun_ConstructURL
 
 
 --> Noun
@@ -129,15 +212,6 @@ function noun_FetchCollectionsData pMaxPageNum
    end repeat
    return collectionData
 end noun_FetchCollectionsData
-
-function noun_FetchCollectionsDataPage pageNum
-   constant restEndPoint = "https://api.thenounproject.com/collections"
-   
-   put restEndPoint & "?limit=50&page=" & pageNum into restURL
-   put noun_FetchData (restURL) into resultArray
-   put resultArray ["Collections"] into collectionArray
-   return collectionArray
-end noun_FetchCollectionsDataPage
 
 function noun_FilterIndexIconData indexedIconData
    put 1 into newItemNum
@@ -205,83 +279,27 @@ command noun_SetApiSecret consumerSecret
 end noun_SetApiSecret
 
 
---> Deps
+--> Private
 -
-function test_NounRestURL restURL
-   -- https://api.thenounproject.com/icon/1?oauth_consumer_key=00d313ddb35c4ba580f08959ddb7c146&oauth_signature_method=HMAC-SHA1&oauth_timestamp=1627168116&oauth_nonce=D9SxqmfDq6l&oauth_version=1.0&oauth_signature=JM43dUM8O44VLQwu36GSar8v6O4%3D
-   set the itemdelimiter to "?"
-   put item 1 of restURL into restEndPoint
-   put item 2 to -1 of restURL into requestArray
+private function _AddUrlParams restURL, pTimeStamp, pAuthNonce
+   put noun_GetConsumerKey() into consumerKey
+   put noun_GetApiSecret() into consumerSecret
    --
-   split requestArray using "&" and "="
-   -- display_Array requestArray, "Url Params"
-   --
-   oauth_DeconstructRequestArray requestArray, timeStamp, authNonce, consumerKey, authVersion, callbackURL, signatureMethod
-   put noun_ConstructedSig (restEndPoint, consumerKey, timeStamp, authNonce) into constructedSig
-   put noun_ConstructURL (restEndPoint, timeStamp, authNonce) into constructedURL
+   put empty into callbackURL
+   put oAuth_ConstructRequestArray ("GET", restURL, consumerKey, consumerSecret, callbackURL, pTimeStamp, pAuthNonce) into requestArray
+   put requestArray ["oauth_signature"] into constructedSig
    
-   put urlEncode (constructedSig) = requestArray ["oauth_signature"] into sigSame
-   put constructedURL = restURL into urlSame
-   -- put "urlSame:" && urlSame &CR& "sigSame:" && sigSame & CR & restURL & CR & constructedURL
-   return urlSame AND sigSame
-end test_NounRestURL
+   put requestArray ["oauth_timestamp"] into timeStamp
+   put requestArray ["oauth_nonce"] into authNonce
+   put _ConstructedSig (restURL, consumerKey, timeStamp, authNonce) into constructedSig
+   ---
+   put oAuth_ConstructRequestURL (restURL, requestArray, constructedSig) into requestURL
+   --
+   return requestURL
+end _AddUrlParams
 
--- on test_NounUrl
-put "https://api.thenounproject.com/icon/1" into restEndPoint
-put noun_ConstructURL (restEndPoint) into restURL
---
-display_NounUrl restURL
-end test_NounUrl
-
--- on test_StoredNounUrl
-put pageArray_FetchItem ("test.livecode.world", "noun-project-test", "959e0d1a8f786b97") into someURL
-replace CR with empty in someURL
---
-display_NounUrl someURL
-end test_StoredNounUrl
-
--- on test_NounSig
---
-/*
-GET /icon/1?oauth_consumer_key=00d313ddb35c4ba580f08959ddb7c146&oauth_signature_method=HMAC-SHA1&oauth_timestamp=1627156821&oauth_nonce=fIxFnd5ZChz&oauth_version=1.0&oauth_signature=zq9R30DgmgFysMHgKgPefSNijAg%3D HTTP/1.1
-*/
-put pageArray_FetchItem ("test.livecode.world", "noun-project-test", "f07dc0eebd267186") into requestArray
-replace CR with empty in requestArray
-
-replace quote with empty in requestArray
-delete word 1 of requestArray
-replace space with empty in requestArray
-split requestArray using comma and "="
-oauth_DeconstructRequestArray requestArray, timeStamp, authNonce, consumerKey, authVersion, callbackURL, signatureMethod
-put requestArray ["oauth_signature"] into oauthSignature
---
-put "https://api.thenounproject.com/icon/1" into restEndPoint
---
-put noun_GetConsumerKey() into consumerKey
-put noun_ConstructedSig (restEndPoint, consumerKey, timeStamp, authNonce) into constructedSig
-
-put noun_ConstructURL (restEndPoint, timeStamp, authNonce) into restURL
-put url restURL into resultJSON
---
-get oAuth_PercentEncode (constructedSig)
-put (oauthSignature = it) & CR & it & CR & oauthSignature & CR&CR & restURL & CR&CR & resultJSON
-end test_NounSig
-
--- command test_Noun
-local pTimeStamp, pAuthNonce
--- put "https://api.thenounproject.com/oauth/usage" into restEndPoint
-put "https://api.thenounproject.com/icon/1" into restEndPoint
---
-put noun_GetConsumerKey() into consumerKey
-put noun_GetApiSecret() into consumerSecret
---
-put oAuth_ConstructRequestHeader ("GET", restEndPoint, consumerKey, consumerSecret) into extraHeaders
-
--- set the httpheaders to extraHeaders
-jsonrpc_SetHeaders extraHeaders
-put url restEndPoint into someJson
---
-put extraHeaders & CR&CR & someJson
--- display_JSON someJson
-end test_Noun
-
+private function _ConstructedSig restURL, consumerKey, timeStamp, authNonce
+   put noun_GetApiSecret() into consumerSecret
+   put oAuth_ConstructSignature ("GET", restURL, consumerKey, consumerSecret, "", timeStamp, authNonce) into constructedSig
+   return constructedSig
+end _ConstructedSig

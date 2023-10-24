@@ -65,15 +65,14 @@ end menu_DisplayNounSvg
 on menu_LaunchIcon displayView
    put _GetIconData (displayView) into iconData
    --
-   put iconData ["permalink"] into permalink
-   put iconData ["preview_url"] into previewURL
-   put iconData ["preview_url_42"] into tinyPreviewURL
-   put iconData ["preview_url_84"] into smallPreviewURL
-   --
-   put "https://thenounproject.com" & permalink into iconPageURL
-   --
-   launch url iconPageURL
+   launch_NounIcon iconData
 end menu_LaunchIcon
+
+on menu_NounIconBrowser displayView
+   put _GetIconData (displayView) into iconData
+   --
+   display_NounBrowser iconData
+end menu_NounIconBrowser
 
 on _
 end _

@@ -10,33 +10,6 @@ version: 0.1
 /*Some help*/
 
 
---> Working on
--
-command display_NounTagIcons tagName, pPublicDomian, pMaxPageNum
-   put noun_FetchTaggedIconData (tagName, pPublicDomian, pMaxPageNum) into indexedIconData
-   --   
-   display_IndexedIconData indexedIconData, tagName, "Tagged Noun Icons", "Noun | Collection", "mDoubleUp_NounCollections"
-   put the result into displayView
-   --
-   return displayView
-end display_NounTagIcons
-
-command display_IndexedIconData indexedIconData, pTitle, pLabel, pMenuBit, pDoubleUp
-   put noun_ConstructIconNameData (indexedIconData) into iconNameData
-   put keys (iconNameData) into iconNames
-   sort iconNames
-   --
-   display_Data iconNames, pTitle, pLabel
-   put the result into displayView
-   display_SetInteractions displayView, pMenuBit, pDoubleUp
-   --
-   set the indexed_IconData of displayView to indexedIconData
-   set the icon_NameData of displayView to iconNameData
-   --
-   return displayView
-end display_IndexedIconData
-
-
 --> Display | Events
 -
 on drop_NounUrl dTarget
@@ -57,6 +30,29 @@ on drop_NounUrl dTarget
          put droppedURL
    end switch
 end drop_NounUrl
+
+command launch_NounIcon iconData
+   if iconData is a number then
+      put iconData into iconID
+      display_NounIcon iconID
+   else
+      put "https://thenounproject.com" & iconData ["permalink"] into nounURL
+      launch url nounURL
+   end if
+end launch_NounIcon
+
+command display_NounBrowser iconData
+   if iconData is a number then
+      put iconData into iconID
+      put noun_FetchIconData (iconID) into iconData
+   end if
+   --
+   put iconData ["permalink"] into nounURL
+   put "https://thenounproject.com" & nounURL into nounURL
+   --
+   display_Browser nounURL
+   return the result
+end display_NounBrowser
 
 on mDoubleUp_DisplayCollection displayView, cName
    put the collection_Data of displayView into collectionData
@@ -86,11 +82,73 @@ on mDoubleUp_NounCollections displayView, iconName
 end mDoubleUp_NounCollections
 
 
+--> Working on
+-
+command display_NounIcon iconID, pSvgButton, pStackStyle, pLocOrRect
+   if pStackStyle is empty then put "palette" into pStackStyle
+   if pLocOrRect is empty then put "mouse" into pLocOrRect
+   --
+   put noun_FetchIconData (iconID) into iconData
+   --
+   put iconData ["Term"] into iconTerm
+   put iconData ["icon_url"] into iconURL
+   put noun_ConstructIconName (iconData) into iconName
+   --
+   if iconURL is not empty then
+      _DisplaySvgIcon iconID, iconURL, iconName, iconData, pSvgButton
+      put the result into svgButton
+      if the shiftKey is "Up" then
+         return svgButton
+      end if
+   end if
+   --
+   if iconURL is empty or the shiftKey is "Down" then
+      _DisplayIconimage iconData, iconName, pStackStyle, pLocOrRect
+      put the result into imageView
+      if iconURL is empty then
+         return imageView
+      else
+         return svgButton
+      end if
+   end if
+end display_NounIcon
+
+
+--> Display
+-
+command display_NounTagIcons tagName, pPublicDomian, pMaxPageNum
+   put noun_FetchTaggedIconData (tagName, pPublicDomian, pMaxPageNum) into indexedIconData
+   --   
+   display_IndexedIconData indexedIconData, tagName, "Tagged Noun Icons", "Noun | Collection", "mDoubleUp_NounCollections"
+   put the result into displayView
+   --
+   return displayView
+end display_NounTagIcons
+
+command display_IndexedIconData indexedIconData, pTitle, pLabel, pMenuBit, pDoubleUp
+   put noun_ConstructIconNameData (indexedIconData) into iconNameData
+   put keys (iconNameData) into iconNames
+   sort iconNames
+   --
+   display_Data iconNames, pTitle, pLabel
+   put the result into displayView
+   display_SetInteractions displayView, pMenuBit, pDoubleUp
+   --
+   set the indexed_IconData of displayView to indexedIconData
+   set the icon_NameData of displayView to iconNameData
+   --
+   return displayView
+end display_IndexedIconData
+
+
 --> Display | Noun
 -
 command display_NounCollection collectionSlug
    put noun_FetchCollectionData (collectionSlug) into collectionsData
-   if collectionsData is empty then return empty
+   if collectionsData is empty then
+      -- breakpoint
+      return empty
+   end if
    --
    put collectionsData ["icons"] into indexedIconData
    put collectionsData ["collection"] into collectionArray
@@ -111,6 +169,8 @@ command display_NounCollection collectionSlug
 end display_NounCollection
 
 command display_NounCollections
+   if the optionKey is "Down" then breakpoint
+   --
    put noun_FetchCollectionsData() into collectionData
    repeat with itemNum = 1 to item 2 of the extents of collectionData
       put collectionData [itemNum]["name"] into cName
@@ -122,48 +182,13 @@ command display_NounCollections
    --
    display_Data cNames, "Noun Collections", "The Noun Project"
    put the result into displayView
-   display_SetInteractions displayView, "Noun | Collections", "mDoubleUp_DisplayCollection"
+   display_SetInteractions displayView, "Noun | Collection", "mDoubleUp_DisplayCollection"
    --
    set the collection_Data of displayView to collectionData
    set the cName_Array of displayView to cNameArray
    --
    return displayView
 end display_NounCollections
-
-command display_NounIcon iconID, pStackStyle, pLocOrRect
-   if pStackStyle is empty then put "palette" into pStackStyle
-   if pLocOrRect is empty then put "mouse" into pLocOrRect
-   --
-   put noun_FetchIconData (iconID) into iconData
-   put iconData ["Term"] into iconTerm
-   put iconData ["icon_url"] into iconURL
-   put noun_ConstructIconName (iconData) into iconName
-   --
-   if iconURL is empty then
-      put iconData ["preview_url"] into previewUrl
-      put url previewUrl into someImage
-      --
-      display_Image someImage, iconName, "Icon Image", pStackStyle, pLocOrRect
-      put the result into imageView
-      set the icon_Data of imageView to iconData
-      --
-      if the shiftKey is "down" then
-         display_Data iconData, iconTerm, "Noun Icon"
-         put the result into displayView
-      end if
-      --
-      return imageView
-   else
-      put url iconURL into svgXML
-      --
-      -- display_NounSvgXml svgXML, iconData, pStackStyle, pLocOrRect
-      put noun_FetchIconPath (iconID) into svgPathText
-      display_SvgIcon iconName, svgPathText, iconData
-      put the result into svgButton
-      --
-      return svgButton
-   end if
-end display_NounIcon
 
 command display_SvgIcon iconName, svgPathText, pNounIconData
    display_Clone "View|Button|Svg", iconName, svgPathText, "icon_PathText", "mouse", "toplevel"
@@ -196,19 +221,33 @@ command display_NounSvgXml svgXML, pNounIconData, pStackStyle, pLocOrRect
    return svgView
 end display_NounSvgXml
 
-function noun_FetchIconSvg iconID
-   put noun_FetchIconData (iconID) into iconData
-   put iconData ["Term"] into iconTerm
-   put iconData ["icon_url"] into iconURL
-   put noun_ConstructIconName (iconData) into iconName
-   --
-   put url iconURL into svgXML
-   return svgXML
-end noun_FetchIconSvg
 
-function noun_FetchIconPath iconID
-   put noun_FetchIconSvg (iconID) into svgXML
-   put svg_GetPathText (svgXML) into svgPathText
+--> Provate
+-
+command _DisplayIconimage iconData, iconName, pStackStyle, pLocOrRect
+   -- put iconData ["preview_url"] into previewUrl
+   put iconData ["thumbnail_url"] into thumbnailURL
+   put url thumbnailURL into someImage
    --
-   return svgPathText
-end noun_FetchIconPath
+   display_Image someImage, iconName, "Icon Image", pStackStyle, pLocOrRect
+   put the result into imageView
+   set the icon_Data of imageView to iconData
+   --
+   return imageView
+end _DisplayIconimage
+
+command _DisplaySvgIcon iconID, iconURL, iconName, iconData, pSvgButton
+   -- display_NounSvgXml svgXML, iconData, pStackStyle, pLocOrRect
+   put url iconURL into svgXML
+   --
+   put noun_FetchIconPath (iconID) into svgPathText
+   if exists (pSvgButton) then
+      put pSvgButton into svgButton
+   else
+      display_SvgIcon iconName, svgPathText, iconData
+      put the result into svgButton
+   end if
+   --
+   set the icon_Data of svgButton to iconData
+   return svgButton
+end _DisplaySvgIcon

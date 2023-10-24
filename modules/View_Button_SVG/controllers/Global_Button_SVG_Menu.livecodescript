@@ -52,6 +52,13 @@ end disabled_DisplayIconData
 
 --> Global | Button | SVG | Menu
 -
+on menu_DisplayNounCollections
+   display_NounCollections
+end menu_DisplayNounCollections
+
+private command _
+end _
+
 on menu_SetIcon svgButton, iName
    set the iconPresetName of svgButton to iName
 end menu_SetIcon
@@ -69,34 +76,12 @@ on menu_ResetIcon svgButton
    display_Data iconData
 end menu_ResetIcon
    
-private command _
-end _
+private command __
+end __
 
 on submenu_Library
    return "Global | Svg | Library | Menu"
 end submenu_Library
-
-on menu_DisplayIconData svgButton
-   put the icon_Data of svgButton into iconData
-   --
-   display_Data iconData
-end menu_DisplayIconData
-
-private command __
-end __
-
-on submenu_Assets
-   return "Global | Svg | Assets | Menu"
-end submenu_Assets
-
-on menu_DiplaySvgPath svgButton
-   put the iconPath of svgButton into svgPath
-   display_Text svgPath, "the iconPath of svgButton"
-end menu_DiplaySvgPath
-
-on menu_DisplayNounCollections
-   display_NounCollections
-end menu_DisplayNounCollections
 
 on menu_ImportSvg svgButton, vStackName
    put the long id of control 1 of stack vStackName into svgView
@@ -108,11 +93,13 @@ on menu_ImportSvg svgButton, vStackName
    set the iconPath of svgButton to svgPathText
 end menu_ImportSvg
 
-private command __
-end __
+private command ___
+end ___
 
-on menu_TestTemplate
-   put scaffold_GetTemplate ("SVG") into svgTemplate
-   test_Svg svgTemplate
-end menu_TestTemplate
+on submenu_Assets
+   return "Global | Svg | Assets | Menu"
+end submenu_Assets
 
+on submenu_Dev
+   return menu_DevTitle("Global | Button | SVG | Menu")
+end submenu_Dev

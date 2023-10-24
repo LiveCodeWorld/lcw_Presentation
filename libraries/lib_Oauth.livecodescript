@@ -69,7 +69,9 @@ function oAuth_ConstructRequestURL restURL, requestArray, constructedSig
    put "oauth_nonce=" & urlencode (requestArray ["oauth_nonce"]) & "&" after urlBit
    put "oauth_version=" & urlencode (requestArray["oauth_version"]) & "&" after urlBit
    --
-   put url_ConstructParamBit (restParamArray) & "&" after urlBit
+   if url_ConstructParamBit (restParamArray) is not empty then
+      put url_ConstructParamBit (restParamArray) & "&" after urlBit
+   end if
    --
    put "oauth_signature=" & urlencode (constructedSig) after urlBit
    --
