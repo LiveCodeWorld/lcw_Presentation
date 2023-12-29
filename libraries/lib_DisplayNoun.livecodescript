@@ -10,17 +10,20 @@ version: 0.1
 /*Some help*/
 
 
+--> Working on
+-
+
 --> Display | Events
 -
 on drop_NounUrl dTarget
    put the dragdata ["text"] into droppedURL
    switch
       case matchText (droppedURL, "https://thenounproject.com/term/(.+)/(.+)/", iconTerm, iconID)
-         display_NounIcon iconID, "system"
+         display_NounIcon iconID
          break
       case matchText (droppedURL, "https://thenounproject.com/(.+)/collection/(.+)/\?i=(.+)" , authorName, collectionSlug, iconID)
          -- https://thenounproject.com/konkapp/collection/vaccine/?i=4020707
-         display_NounIcon iconID, "system"
+         display_NounIcon iconID
          display_NounCollection collectionSlug
          break
       case matchText (droppedURL, "https://thenounproject.com/(.+)/collection/(.+)/" , authorName, collectionSlug)
@@ -31,6 +34,9 @@ on drop_NounUrl dTarget
    end switch
 end drop_NounUrl
 
+
+--> Display
+-
 command launch_NounIcon iconData
    if iconData is a number then
       put iconData into iconID
@@ -40,6 +46,47 @@ command launch_NounIcon iconData
       launch url nounURL
    end if
 end launch_NounIcon
+
+command display_NounIcon iconID, pDisplayView, pSvgButton, pStackStyle, pLocOrRect
+   if pStackStyle is empty then put "palette" into pStackStyle
+   --
+   put noun_FetchIconData (iconID) into iconData
+   --
+   put iconData ["Term"] into iconTerm
+   put iconData ["icon_url"] into iconURL
+   put noun_ConstructIconName (iconData) into iconName
+   --
+   if iconURL is not empty then
+      _DisplaySvgIcon iconID, iconURL, iconName, iconData, pSvgButton
+      put the result into svgButton
+      if the shiftKey is "Up" then
+         return svgButton
+      end if
+   end if
+   --
+   if iconURL is empty or the shiftKey is "Down" then
+      _DisplayIconimage iconData, iconName, pDisplayView, pStackStyle
+      put the result into imageView
+      if iconURL is empty then
+         return imageView
+      else
+         return svgButton
+      end if
+   end if
+end display_NounIcon
+
+command display_SvgIcon iconName, svgPathText, pNounIconData, pDisplayView
+   put iconName into stackLabel
+   
+   # Display
+   display_ModuleInstance "View|Button|Svg", svgPathText, stackLabel, pDisplayView, "icon_PathText"
+   put the result into svgButton
+   
+   if pNounIconData is an array then
+      set the icon_Data of svgButton to pNounIconData
+   end if
+   return svgButton
+end display_SvgIcon
 
 command display_NounBrowser iconData
    if iconData is a number then
@@ -66,6 +113,8 @@ on mDoubleUp_DisplayCollection displayView, cName
 end mDoubleUp_DisplayCollection
 
 on mDoubleUp_NounCollections displayView, iconName
+   if the optionKey is "Down" then breakpoint
+   --
    put the collections_Data of displayView into collectionsData
    put collectionsData ["icons"] into collectionIconsData
    put the icon_NameData of displayView into iconNameData
@@ -80,38 +129,6 @@ on mDoubleUp_NounCollections displayView, iconName
    -- display_Data iconData, iconName, "Noun Icon Data"
    return displayView
 end mDoubleUp_NounCollections
-
-
---> Working on
--
-command display_NounIcon iconID, pSvgButton, pStackStyle, pLocOrRect
-   if pStackStyle is empty then put "palette" into pStackStyle
-   if pLocOrRect is empty then put "mouse" into pLocOrRect
-   --
-   put noun_FetchIconData (iconID) into iconData
-   --
-   put iconData ["Term"] into iconTerm
-   put iconData ["icon_url"] into iconURL
-   put noun_ConstructIconName (iconData) into iconName
-   --
-   if iconURL is not empty then
-      _DisplaySvgIcon iconID, iconURL, iconName, iconData, pSvgButton
-      put the result into svgButton
-      if the shiftKey is "Up" then
-         return svgButton
-      end if
-   end if
-   --
-   if iconURL is empty or the shiftKey is "Down" then
-      _DisplayIconimage iconData, iconName, pStackStyle, pLocOrRect
-      put the result into imageView
-      if iconURL is empty then
-         return imageView
-      else
-         return svgButton
-      end if
-   end if
-end display_NounIcon
 
 
 --> Display
@@ -190,23 +207,6 @@ command display_NounCollections
    return displayView
 end display_NounCollections
 
-command display_SvgIcon iconName, svgPathText, pNounIconData
-   display_Clone "View|Button|Svg", iconName, svgPathText, "icon_PathText", "mouse", "toplevel"
-   put the result into svgButton
-   if exists (svgButton) is false then
-      breakpoint
-      return empty
-   end if
-   
-   set the name of svgButton to iconName
-   -- display_ToolStack svgButton
-   --
-   if pNounIconData is an array then
-      set the icon_Data of svgButton to pNounIconData
-   end if
-   return svgButton
-end display_SvgIcon
-
 command display_NounSvgXml svgXML, pNounIconData, pStackStyle, pLocOrRect
    put the tempName & ".svg" into svgFile
    put svgXML into url ("file:" & svgFile)
@@ -222,21 +222,25 @@ command display_NounSvgXml svgXML, pNounIconData, pStackStyle, pLocOrRect
 end display_NounSvgXml
 
 
---> Provate
+--> Private
 -
-command _DisplayIconimage iconData, iconName, pStackStyle, pLocOrRect
+private command _DisplayIconimage iconData, iconName, pDisplayView, pStackStyle
    -- put iconData ["preview_url"] into previewUrl
    put iconData ["thumbnail_url"] into thumbnailURL
    put url thumbnailURL into someImage
    --
-   display_Image someImage, iconName, "Icon Image", pStackStyle, pLocOrRect
+   -- display_Image someImage, iconName, empty, pStackStyle
+   display_ModuleInstance "View|Image", someImage, iconName, pDisplayView, "displayed_Data", pStackStyle   
    put the result into imageView
+   
+   # Set menus and store icondat
    set the icon_Data of imageView to iconData
+   display_SetMenu imageView, "Noun | Icon"
    --
    return imageView
 end _DisplayIconimage
 
-command _DisplaySvgIcon iconID, iconURL, iconName, iconData, pSvgButton
+private command _DisplaySvgIcon iconID, iconURL, iconName, iconData, pSvgButton
    -- display_NounSvgXml svgXML, iconData, pStackStyle, pLocOrRect
    put url iconURL into svgXML
    --
