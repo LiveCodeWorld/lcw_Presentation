@@ -49,7 +49,7 @@ end _SetRoughRect
 
 private command _Init
    put _BrowserWidget() into browserWidget
-   put scaffold_GetTemplate ("Rough Blue") into roughHTML
+   put scaffold_Get ("Rough Blue") into roughHTML
    --
    set the browser_HtmlText of browserWidget to roughHTML
    set the browser_Element of browserWidget to "svg"
