@@ -7,15 +7,116 @@ type: behavior
 version: 0.1
 
 
---> Objects
+--> Working on
 -
-getprop ring_View
-   return the long id of me
-end ring_View
+command clear_Nodes
+   put the ring_Nodes of me into topNodes
+   repeat for each line someView in topNodes
+      delete someView
+   end repeat
+end clear_Nodes
 
-getprop view_Object
-   return the long id of me
-end view_Object
+getprop ring_NodeNumber
+   put the ring_Nodes of me into ringNodes
+   return the number of lines of ringNodes
+end ring_NodeNumber
+
+setprop ring_NodeNumber [pInitialRotation] numberOfPoints
+   lock screen
+   if pInitialRotation is not empty then set the initial_Rotation of me to pInitialRotation
+   put the rect of me into oRect
+   clear_Nodes
+   if numberOfPoints = 0 then return empty
+   
+   put the node_ViewName of me into vName
+   put view_GetTemplateObject (vName) into templateObject
+   if exists (templateObject) is false then return empty
+   
+   put the ring_Graphic of me into ringGraphic
+   put (the width of ringGraphic -2) / 2 into someRadius
+   put the loc of me into centreLoc
+   put ring_GetPoints (numberOfPoints, someRadius, centreLoc, pInitialRotation) into somePoints
+   
+   set the style of ringGraphic to "polygon"
+   set the points of ringGraphic to somePoints
+   
+   repeat with nodeNum = 1 to (the number of lines of somePoints - 1)
+      put line nodeNum of somePoints into someLoc
+      
+      copy templateObject to me
+      put it into copiedView
+      put copiedView & CR after ringNodes
+      
+      -- here we can position, scale and label
+      -- set the loc of copiedView to someLoc
+   end repeat
+   delete char -1 of ringNodes
+   
+   LayoutControl oRect
+   -- LayoutControl oRect
+   unlock screen
+   return ringNodes
+end ring_NodeNumber
+
+setprop ring_PointNumber [pInitialRotation] numberOfPoints
+   put the ring_Graphic of me into ringGraphic
+   put the loc of me into centreLoc
+   put (the width of ringGraphic -2) / 2 into someRadius
+   
+   put ring_GetPoints (numberOfPoints, someRadius, centreLoc, pInitialRotation) into somePoints
+   
+   set the style of ringGraphic to "polygon"
+   set the points of ringGraphic to somePoints
+   return somePoints
+end ring_PointNumber
+
+
+--> Layout
+-
+command LayoutControl pRect, pNodeWidth
+   if pRect is empty then put the rect of me into pRect
+   put pRect into innerRect
+   
+   lock screen 
+   put the ring_Graphic of me into ringGraphic
+   set the rect of me to innerRect
+   
+   put _GetRingRadius (innerRect, pNodeWidth) into someRadius
+   -- test_RingRadius someRadius, innerRect
+   
+   put the ring_FormattedBorder of me into ringBorderWidth
+   set the linesize of ringGraphic to ringBorderWidth
+   
+   put the initial_Rotation of me into initialRotation
+   put the ring_Nodes of me into ringNodes
+   put the number of lines of ringNodes into numberOfPoints
+   if numberOfPoints = 0 then
+      return empty
+   end if
+   
+   put rect_GetCentre (innerRect) into centreLoc
+   put ring_GetPoints (numberOfPoints, someRadius, centreLoc, initialRotation) into somePoints
+   --
+   set the points of ringGraphic to somePoints
+   
+   return ringNodes
+end LayoutControl
+
+private command _SetNodeRects somePoints
+   put the node_FactorWidth of me into nodeWidth  
+   repeat with nodeNum = 1 to (the number of lines of somePoints - 1)
+      put line nodeNum of somePoints into someLoc
+      put line nodeNum of ringNodes into nodeView
+      if exists (nodeView) is false then
+         next repeat
+      end if
+      
+      put rect_LocWidthHeight (someLoc, nodeWidth, nodeWidth) into nodeRect
+      set the rect of nodeView to nodeRect
+      -- set the loc of nodeView to someLoc
+      set the image_Margins of nodeView to 0
+   end repeat
+end _SetNodeRects
 
 
 --> Data
@@ -49,7 +150,6 @@ end ring_NodeArray
 -
 on resizecontrol
    LayoutControl
-   -- LayoutControl
 end resizecontrol
 
 on preOpenControl
@@ -121,46 +221,6 @@ setprop node_Width nodeWidth
    LayoutControl pRect, nodeWidth
    return empty
 end node_Width
-
-command LayoutControl pRect, pNodeWidth
-   if pRect is empty then put the rect of me into pRect
-   put pRect into innerRect
-   
-   lock screen
-   put the ring_Graphic of me into ringGraphic
-   
-   put _GetRingRadius (innerRect, pNodeWidth) into someRadius
-   -- test_RingRadius someRadius, innerRect
-   
-   put the ring_FormattedBorder of me into ringBorderWidth
-   set the linesize of ringGraphic to ringBorderWidth
-   
-   put the initial_Rotation of me into initialRotation
-   put the ring_Nodes of me into ringNodes
-   put the number of lines of ringNodes into numberOfPoints
-   if numberOfPoints = 0 then
-      return empty
-   end if
-   
-   put rect_GetCentre (innerRect) into centreLoc
-   put ring_GetPoints (numberOfPoints, someRadius, centreLoc, initialRotation) into somePoints
-   --
-   set the points of ringGraphic to somePoints
-   
-   put the node_FactorWidth of me into nodeWidth  
-   repeat with nodeNum = 1 to (the number of lines of somePoints - 1)
-      put line nodeNum of somePoints into someLoc
-      put line nodeNum of ringNodes into nodeView
-      
-      put rect_LocWidthHeight (someLoc, nodeWidth, nodeWidth) into nodeRect
-      set the rect of nodeView to nodeRect
-      -- set the loc of nodeView to someLoc
-      set the image_Margins of nodeView to 0
-   end repeat
-   
-   set the rect of me to innerRect
-   return ringNodes
-end LayoutControl
 
 
 --> Node
@@ -325,67 +385,6 @@ getprop ring_Node [nodeNum]
    return ringNode
 end ring_Node
 
-getprop ring_NodeNumber
-   put the ring_Nodes of me into ringNodes
-   return the number of lines of ringNodes
-end ring_NodeNumber
-
-setprop ring_NodeNumber [pInitialRotation] numberOfPoints
-   lock screen
-   if pInitialRotation is not empty then set the initial_Rotation of me to pInitialRotation
-   put the rect of me into oRect
-   clear_Nodes
-   if numberOfPoints = 0 then return empty
-   
-   put the node_ViewName of me into vName
-   put view_GetTemplateObject (vName) into templateObject
-   if exists (templateObject) is false then return empty
-   
-   put the ring_Graphic of me into ringGraphic
-   put (the width of ringGraphic -2) / 2 into someRadius
-   put the loc of me into centreLoc
-   put ring_GetPoints (numberOfPoints, someRadius, centreLoc, pInitialRotation) into somePoints
-   
-   set the style of ringGraphic to "polygon"
-   set the points of ringGraphic to somePoints
-   
-   repeat with nodeNum = 1 to (the number of lines of somePoints - 1)
-      put line nodeNum of somePoints into someLoc
-      
-      copy templateObject to me
-      put it into copiedView
-      put copiedView & CR after ringNodes
-      
-      -- here we can position, scale and label
-      -- set the loc of copiedView to someLoc
-   end repeat
-   delete char -1 of ringNodes
-   
-   LayoutControl oRect
-   -- LayoutControl oRect
-   unlock screen
-   return ringNodes
-end ring_NodeNumber
-
-command clear_Nodes
-   put the ring_Nodes of me into topNodes
-   repeat for each line someView in topNodes
-      delete someView
-   end repeat
-end clear_Nodes
-
-setprop ring_PointNumber [pInitialRotation] numberOfPoints
-   put the ring_Graphic of me into ringGraphic
-   put the loc of me into centreLoc
-   put (the width of ringGraphic -2) / 2 into someRadius
-   
-   put ring_GetPoints (numberOfPoints, someRadius, centreLoc, pInitialRotation) into somePoints
-   
-   set the style of ringGraphic to "polygon"
-   set the points of ringGraphic to somePoints
-   return somePoints
-end ring_PointNumber
-
 function ring_GetPoints numberOfPoints, someRadius, pCentreLoc, pInitialRotation
    if pCentreLoc is empty then put 0,0 into pCentreLoc
    angle_ConvertDegrees pInitialRotation
@@ -432,14 +431,19 @@ end angle_RadiansToDegrees
 
 --> Objects
 -
+getprop ring_View
+   return the long id of me
+end ring_View
+
+getprop view_Object
+   return the long id of me
+end view_Object
+
 getprop ring_Graphic
    return the long id of grc "Ring" of me
 end ring_Graphic
 
 getprop ring_Nodes
-   -- put the top_Views of me into tObjects
-   
-   -- top controls other than the ring graphic
    local tObjects
    put the short id of grc "Ring" of me into rID
    put the childcontrolids of the target into topControlIDs
