@@ -483,7 +483,10 @@ private command _AddContactButton @pageArray, communityData
    if text_IsNotEmpty (contactName) then
       put contactName into hiddenKeyValueArray ["contactName"]
       put contactPhone into hiddenKeyValueArray ["contactPhone"]
-      pageArray_AddButton pageArray, "Create Contact", "https://rest.livecode.world/intentional/createContact", hiddenKeyValueArray
+      --
+      put platform_RestUrl ("intentional/createContact") into restURL
+      --
+      pageArray_AddButton pageArray, "Create Contact", restURL, hiddenKeyValueArray
    end if
 end _AddContactButton
 
@@ -704,8 +707,8 @@ function ic_ConstructListElementHtml listArray
    put "</p>" & someDelim after htmlTemplate
    --
    put icSlug into hiddenKeyValueArray ["icSlug"]
-   -- pageArray_AddButton pageArray, "Export Contact", "https://rest.livecode.world/intentional/exportContact", hiddenKeyValueArray
-   put fedwiki_ConstructButtonForm ("Immport", "https://rest.livecode.world/intentional/importCommunity", hiddenKeyValueArray) into formHTML
+   put platform_RestUrl ("intentional/importCommunity") into restURL
+   put fedwiki_ConstructButtonForm ("Import", restURL, hiddenKeyValueArray) into formHTML
    put formHTML & someDelim after htmlTemplate
    --
    put "<hr>" after htmlTemplate
