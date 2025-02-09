@@ -241,11 +241,10 @@ end _SetTemplategraphic
 
 --> Deps
 -
-function colour_GetRandom
+private function colour_GetRandom
    -- was "randomColour"
    put random(255) into item 1 of someColour
    put random(255) into item 2 of someColour
    put random(255) into item 3 of someColour
    return someColour
 end colour_GetRandom
-
