@@ -577,7 +577,7 @@ function ic_PageFromListData icListData, pPageTitle, linkURL
    --
    put merge ("Here is a listing of [[maxItemNum]] intentional communities.") into someMarkdown
    put space & "You can view the lisiting on the Foundation for Intentional Community ([[FIC]]) site here" after someMarkdown
-   put space & md_ConstructExternalLinkLine (linkURL) after someMarkdown
+   put space & markdown_ExternalLinkLine (linkURL) after someMarkdown
    --
    put pageArray_Construct (pPageTitle, someMarkdown) into pageArray
    pageArray_AddMarkdown pageArray, "---"
@@ -597,11 +597,11 @@ end ic_PageFromListData
 function ic_ConstructWebLinkMarkdown websiteUrl, socialUrl, facebookUrl, businessUrl, icURL
    put "# Links" & CR&CR into someMarkdown
    --
-   md_AddLinkLine someMarkdown, icURL, "FIC:"
-   md_AddLinkLine someMarkdown, websiteUrl, "Website:"
-   md_AddLinkLine someMarkdown, socialUrl, "Social:"
-   md_AddLinkLine someMarkdown, facebookUrl, "FaceBook"
-   md_AddLinkLine someMarkdown, businessUrl, "Business:"
+   markdown_AddLinkLine someMarkdown, icURL, "FIC:"
+   markdown_AddLinkLine someMarkdown, websiteUrl, "Website:"
+   markdown_AddLinkLine someMarkdown, socialUrl, "Social:"
+   markdown_AddLinkLine someMarkdown, facebookUrl, "FaceBook"
+   markdown_AddLinkLine someMarkdown, businessUrl, "Business:"
    --
    return someMarkdown
 end ic_ConstructWebLinkMarkdown
@@ -617,13 +617,13 @@ function ic_ConstructAddressMarkdown someCity, someState, someCountry, addressAr
    put addressArray ["zipCode"] into someZip
    --
    if text_IsNotEmpty (someCity) then
-      put md_Link(someCity) & ", " after contactAddress
+      put markdown_Link(someCity) & ", " after contactAddress
    end if
    if text_IsNotEmpty (someState) then
-      put md_Link(someState) & ", " after contactAddress
+      put markdown_Link(someState) & ", " after contactAddress
    end if
    if text_IsNotEmpty (someCountry) then
-      put md_Link(someCountry) & ", " after contactAddress
+      put markdown_Link(someCountry) & ", " after contactAddress
    end if
    --
    delete char -2 to -1 of contactAddress
