@@ -126,6 +126,17 @@ command LayoutControl pRect
    unlock screen
 end LayoutControl
 
+
+--> Objects
+-
+getprop svgIcon_View
+   return the long id of me
+end svgIcon_View
+
+getprop view_Object
+   return the long id of me
+end view_Object
+
 private function _svgWidget
    return the long id of widget 1 of me
 end _svgWidget
