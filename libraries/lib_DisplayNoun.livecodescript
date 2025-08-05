@@ -5,7 +5,7 @@ copyright: Anonymous
 license: GPLv3
 name: lib_DisplayNoun
 type: library
-version: 0.1
+version: 0.2
 
 /*Some help*/
 
@@ -230,7 +230,7 @@ private command _DisplayIconimage iconData, iconName, pDisplayView, pStackStyle
    put url thumbnailURL into someImage
    --
    -- display_Image someImage, iconName, empty, pStackStyle
-   display_ModuleInstance "View|Image", someImage, iconName, pDisplayView, "displayed_Data", pStackStyle   
+   display_ModuleInstance "View|Image", someImage, iconName, pDisplayView, "displayed_Array", pStackStyle   
    put the result into imageView
    
    # Set menus and store icondat
