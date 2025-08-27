@@ -4,11 +4,12 @@
 license: GPLv3
 name: behavior_ViewButtonSVG
 type: behavior
-version: 0.1
+version: 0.2
 
 
 --> Events
 -
+
 --> Drag
 -
 on dragDrop
@@ -41,7 +42,6 @@ end dragEnter
 
 on mouseDown pButton
    if pButton = 3 then
-      -- menu_PopUp "Global | Governance | Person | Menu"
       menu_PopUp "Global | Button | SVG | Menu"
    else
       if word 1 of the target = "image" then
@@ -54,20 +54,33 @@ on mouseDown pButton
    end if
 end mouseDown
 
-on resizecontrol
-   LayoutControl
-end resizecontrol
-
 
 --> Props
 -
+getprop icon_SvgXml
+   put _SvgWidget() into svgWidget
+   --
+   put the uOPN ["svgXML"] of svgWidget into svgXML
+   return svgXML
+end icon_SvgXml
+
+setprop icon_SvgXml svgXML
+   put _SvgWidget() into svgWidget
+   --
+   put svg_GetPathText (svgXML) into pathText
+   set the icon_PathText of svgWidget to pathText
+   set the uOPN ["svgXML"] of svgWidget to svgXML
+   --
+   return pathText
+end icon_SvgXml
+
 getprop icon_PathText
-   put the iconPath of _svgWidget() into iconPathText
+   put the iconPath of _SvgWidget() into iconPathText
    return iconPathText
 end icon_PathText
 
 setprop icon_PathText iconPathText
-   put _svgWidget() into svgWidget
+   put _SvgWidget() into svgWidget
    set the iconPath of svgWidget to iconPathText
    return svgWidget
 end icon_PathText
@@ -103,28 +116,16 @@ setprop icon_Margin someMargin
 end icon_Margin
 
 getprop icon_Name
-   put _SvgWidget() into _svgWidget
-   put the iconPresetName of _svgWidget into iName
+   put _SvgWidget() into _SvgWidget
+   put the iconPresetName of _SvgWidget into iName
    return iName
 end icon_Name
 
 setprop icon_Name iName
-   put _SvgWidget() into _svgWidget
-   set the iconPresetName of _svgWidget to iName
-   return _svgWidget
+   put _SvgWidget() into _SvgWidget
+   set the iconPresetName of _SvgWidget to iName
+   return _SvgWidget
 end icon_Name
-
-
---> Geometry
--
-command LayoutControl pRect
-   if pRect is empty then put the rect of me into pRect
-   lock screen
-   put _SvgWidget() into svgWidget
-   put the inner_Rect [pRect] of me into innerRect
-   set the rect of svgWidget to innerRect
-   unlock screen
-end LayoutControl
 
 
 --> Objects
@@ -137,6 +138,6 @@ getprop view_Object
    return the long id of me
 end view_Object
 
-private function _svgWidget
-   return the long id of widget 1 of me
-end _svgWidget
+private function _SvgWidget
+   return the long id of me
+end _SvgWidget

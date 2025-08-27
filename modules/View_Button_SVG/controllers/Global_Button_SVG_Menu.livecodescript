@@ -15,9 +15,13 @@ local LocalArray
 --> Meu | Props
 -
 getprop menu_Target [tObject]
-   put the view_Object of tObject into svgView
+   put the svgIcon_View of tObject into svgView
    return svgView
 end menu_Target
+
+getprop menu_CheckTarget [svgView]
+   return exists (svgView)
+end menu_CheckTarget
 
 getprop setIconFamily_Param
    return getCurrentIconFamily()
@@ -46,6 +50,22 @@ getprop disabled_DisplayIconData [svgButton]
    put the icon_Data of svgButton into iconData
    return iconData is not an array
 end disabled_DisplayIconData
+
+getprop style_Param
+   return svgStudio_GetStyle()
+end style_Param
+
+getprop style_Params
+   return svgStudio_ListStyles()
+end style_Params
+
+getprop detail_Param
+   return svgStudio_GetDetailLevel()
+end detail_Param
+
+getprop detail_Params
+   return svgStudio_ListDetailLevels()
+end detail_Params
 
 
 --> Global | Button | SVG | Menu
@@ -76,35 +96,25 @@ on menu_GenerateIcon svgButton
    # Display
    if the shiftKey is "down" then
       display_SvgButton svgXML, sPrompt
+      put the result into svgButton
    else
-      put svg_GetPathText (svgXML) into svgPathText
-      set the icon_PathText of svgButton to svgPathText
+      -- put svg_GetPathText (svgXML) into svgPathText
+      set the icon_SvgXml of svgButton to svgXML
    end if
+   --
+   put sPrompt into pArray ["prompt"]
+   put sStyle into pArray ["style"]
+   --
+   set the uOPN ["svgStudio"] of svgButton to pArray
 end menu_GenerateIcon
 
 on menu_Style svgButton, sStyle
    svgStudio_SetStyle sStyle
 end menu_Style
 
-getprop style_Param
-   return svgStudio_GetStyle()
-end style_Param
-
-getprop style_Params
-   return svgStudio_ListStyles()
-end style_Params
-
 on menu_Detail svgButton, dLevel
    svgStudio_SetDetailLevel dLevel
 end menu_Detail
-
-getprop detail_Param
-   return svgStudio_GetDetailLevel()
-end detail_Param
-
-getprop detail_Params
-   return svgStudio_ListDetailLevels()
-end detail_Params
 
 private command _
 end _
@@ -132,6 +142,17 @@ end __
 on submenu_Library
    return "Global | Svg | Library | Menu"
 end submenu_Library
+
+on menu_CopySvg svgButton
+   put the icon_SvgXml of svgButton into svgXML
+   set the clipboardData to svgXML
+end menu_CopySvg
+
+on menu_DisplaySvg svgButton
+   put the icon_SvgXml of svgButton into svgXML
+   --
+   display_SvgXml svgXML, "Icon SVG"
+end menu_DisplaySvg
 
 on menu_ImportSvg svgButton, vStackName
    put the long id of control 1 of stack vStackName into svgView

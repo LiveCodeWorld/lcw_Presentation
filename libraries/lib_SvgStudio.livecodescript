@@ -104,11 +104,13 @@ command svgStudio_SetToken apiToken
    secret_Set "svgStudio", apiToken
 end svgStudio_SetToken
 
-function svgStudio_Generate sPrompt, pImageUrl, pStyle, pParamArray, pToken
+function svgStudio_Generate sPrompt, pStyle, pParamArray, pImageUrl, pToken
    /* 
    curl -X POST https://svgstud.io/generate/ \
    -H "Content-Type: application/json" \
          -d '{"prompt":"friendly alien with smartphone"}'
+   
+   value is not a valid enumeration member; permitted: 'automatic', 'default', 'cartoon style', 'contour', 'icon', 'line_art', 'logo', 'manga_style', 'papercut', 'silhouette'
    */
    if pStyle is empty then put "automatic" into pStyle
    if pToken is empty then
@@ -116,9 +118,9 @@ function svgStudio_Generate sPrompt, pImageUrl, pStyle, pParamArray, pToken
    end if
    
    put sPrompt into pParamArray ["prompt"]
-   put pImageUrl into pParamArray ["image_url"]
    put pStyle into pParamArray ["style"]
    put pToken into pParamArray ["token"]
+   put pImageUrl into pParamArray ["image_url"]
    
    put svgStudio_RestUrl ("/generate/") into restUrl
    put jsonrpc_PostArray (pParamArray, restUrl) into rData
@@ -157,29 +159,37 @@ function svgStudio_RetrieveData sPrompt, pImageUrl, pWeight, pDedup, pResultNum
    return rData
 end svgStudio_RetrieveData
 
-function svgStudio_TokenBudget
+function svgStudio_TokenBudget pApiToken
    -- curl "https://svgstud.io/token_budget/?token=YOUR_TOKEN"
+   if pApiToken is empty then
+      put svgStudio_GetToken() into pApiToken
+   end if
    
    # Check your remaining token budget
-   put "https://svgstud.io/token_budget/?token=" & apiToken into restURL
-   put jsonrpc_GetArray (restURL) into rData
-   display_Data rData
+   put "https://svgstud.io/token_budget/?token=" & pApiToken into restURL
+   put jsonrpc_GetArray (restURL) into sNum
+   return sNum
 end svgStudio_TokenBudget
 
-function svgStudio_RequestToken
+function svgStudio_RequestToken sEmail
    -- https://svgstud.io/request_token
+   put "david@regovern.org" into sEmail
+   --
+   put sEmail into pArray ["email"]
+   put svgStudio_RestUrl ("/request_token") into restUrl
+   put jsonrpc_PostArray (pArray, restUrl) into rData
+   --
+   display_Data rData
+   return rData
 end svgStudio_RequestToken
 
 function svgStudio_RestUrl restPath
+   if char 1 of restPath is not slash then put slash before restPath
+   --
    put "https://svgstud.io" into restStem
    put restStem & restPath into restUrl
    return restUrl
 end svgStudio_RestUrl
-
-
---> SvgStudio
--
-
 
 --> Deps
 -
